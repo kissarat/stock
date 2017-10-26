@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stock Exchange</title>
+    <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons"/>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/vue/2.5.2/vue.min.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
+    <script src="underscore-min.js"></script>
+    <script>
+      WebFont.load({
+        google: {
+          families: [
+            'Roboto:200,300,400,500,600,700'
+          ]
+        }
+      })
+    </script>
+    <style>
+        body {
+            font-family: Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <h1>Stocks</h1>
+        <div>
+            <span class="name">
+                Logged in as
+                <span>{{ user.forename }}</span>
+                <span>{{ user.surname }}</span>
+            </span>
+            <i class="settings material-icons">settings</i>
+            <i class="logout material-icons">power_settings_new</i>
+        </div>
+    </header>
+    <article>
+        <div id="prices">
+            <h2>Stock prices</h2>
+            <table>
+                <thead>
+                <tr>
+                    <td>Company</td>
+                    <td>Value</td>
+                    <td>Actions</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="c of companies">
+                    <td>{{ c.Code }}</td>
+                    <td>{{ c.Price }}</td>
+                    <td>
+                        <button type="button">Buy</button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="wallet"></div>
+    </article>
+<script src="common.js"></script>
+<script src="client.js"></script>
+</body>
+</html>

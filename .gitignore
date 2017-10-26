@@ -1,0 +1,7 @@
+.DS_Store
+.idea/
+config.json
+data/*.sqlite
+node_modules/
+package-lock.json
+public/*-min.js

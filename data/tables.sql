@@ -1,0 +1,16 @@
+CREATE TABLE user (
+  id VARCHAR(32) PRIMARY KEY,
+  password VARCHAR(192) NOT NULL,
+  forename VARCHAR(48) NOT NULL,
+  surname VARCHAR(48) NOT NULL,
+  token VARCHAR(48)
+);
+
+CREATE TABLE stock (
+  id INT AUTOINCREMENT PRIMARY KEY,
+  user VARCHAR(32) NOT NULL REFERENCES user(id),
+  code VARCHAR(5) NOT NULL,
+  amount INT NOT NULL,
+  price INT NOT NULL,
+  time INT NOT NULL
+);
