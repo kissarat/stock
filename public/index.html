@@ -24,7 +24,7 @@
 </head>
 <body>
 <main>
-    <header>
+    <header v-if="user">
         <h1>Stocks</h1>
         <div>
             <span class="name">
@@ -48,9 +48,9 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr v-for="c of companies">
-                    <td>{{ c.Code }}</td>
-                    <td>{{ c.Price }}</td>
+                <tr v-for="(c, code) in companies">
+                    <td>{{ code }}</td>
+                    <td>{{ c.price }}</td>
                     <td>
                         <button type="button">Buy</button>
                     </td>

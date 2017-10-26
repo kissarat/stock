@@ -1,14 +1,9 @@
-const data = {
-  user: {
-    forename: '',
-    surname: ''
-  },
-  companies: {}
-}
-
-new Vue({
+const vue = new Vue({
   el: 'main',
-  data
+  data: {
+    user: false,
+    companies: {}
+  }
 })
 
 class Client extends Reconnect {
@@ -19,6 +14,23 @@ class Client extends Reconnect {
 
   on(event, fn) {
     return this.sock.addEventListener(event, fn)
+  }
+
+  onMessage(e) {
+    const data = JSON.parse(e.data)
+    switch (data.type) {
+      case 'stock':
+        vue.companies = data.result
+        // console.log(JSON.stringify(data.companies))
+        break
+
+      case 'user':
+        vue.user = data.result
+        break
+
+      default:
+        console.log('Unknown response', data)
+    }
   }
 }
 

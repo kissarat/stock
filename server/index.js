@@ -2,6 +2,7 @@ const express = require('express')
 const WebSocket = require('ws')
 const {Reconnect, parseCookies} = require('../public/common')
 const actions = require('./actions')
+const db = require('../data')
 require('./context')
 
 const port = 3000
@@ -26,13 +27,13 @@ class StockListener extends Reconnect {
     this.sock.on(event, fn)
   }
 
-  onMessage(data) {
+  async onMessage(data) {
     const record = JSON.parse(data)
     record.type = 'stock'
     record.time = new Date(record.PublicationDate).getTime()
     this.record = record
-    for(const sock of wss.clients) {
-      sock.stock()
+    for (const sock of wss.clients) {
+      await actions.stock.call(sock)
     }
   }
 }
@@ -46,7 +47,7 @@ wss.on('connection', async function (sock, req) {
     sock.request = req
     sock.stockListener = stockListener
     await actions.user.call(sock)
-    actions.stock.call(sock)
+    await actions.stock.call(sock)
     sock.on('message', async function (data) {
       try {
         data = JSON.parse(data)
