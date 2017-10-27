@@ -2,17 +2,18 @@ CREATE VIEW balance AS
   SELECT
     user,
     sum(price * amount) AS balance
-  FROM own
+  FROM stock
   GROUP BY user;
 
 CREATE VIEW profile AS
   SELECT
     id,
     forename,
-    surename,
+    surname,
+    password,
     balance
-  FROM balance b
-    JOIN user u ON b.user = u.id;
+  FROM user u
+    LEFT JOIN balance b ON b.user = u.id;
 
 CREATE VIEW own AS
   SELECT

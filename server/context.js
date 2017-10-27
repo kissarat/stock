@@ -1,31 +1,50 @@
 const db = require('../data')
 const WebSocket = require('ws')
+const {isEmpty} = require('underscore')
 
 Object.defineProperties(WebSocket.prototype, {
+  session: {
+    get() {
+      return this.sessions[this.token]
+    }
+  },
+
   token: {
     get() {
-      return this.request.headers.cookie.token
+      return this.request.cookies.token || ''
     }
   },
 })
 
 Object.assign(WebSocket.prototype, {
   getProfile(where) {
-    if (!where) {
-      if (this.request.token && this.request.token.length <= 48) {
-        where = {token: this.request.token}
-      }
-      else {
-        return
-      }
+    if (isEmpty(where)) {
+      throw new Error('Empty query')
     }
+    // console.error('getProfile', where)
     return db.table('profile')
         .where(where)
-        .first('id', 'surname', 'forename')
+        .first()
   },
 
-  json(o)
-  {
+  async login(params) {
+    const user = await this.getProfile(params)
+    if (user) {
+      user.authorized = Date.now()
+      delete user.password
+      this.sessions[this.token] = user
+      return user
+    }
+    else {
+      console.error('User not found', params)
+    }
+  },
+
+  logout() {
+    return delete this.sessions[this.token]
+  },
+
+  json(o) {
     this.send(JSON.stringify(o))
   }
 })

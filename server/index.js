@@ -16,6 +16,10 @@ const server = app.listen(port, function () {
 class StockListener extends Reconnect {
   constructor(url) {
     super(url)
+    this.record = {
+      PublicationDate: "1970-01-01T00:00:00.000Z",
+      Items: []
+    }
   }
 
   connect() {
@@ -38,25 +42,49 @@ class StockListener extends Reconnect {
   }
 }
 
+const sessions = {}
+
 const stockListener = new StockListener('ws://webtask.future-processing.com:8068/ws/stocks?format=json')
 
 const wss = new WebSocket.Server({server});
 wss.on('connection', async function (sock, req) {
+  async function callAction(actionName, message = {}) {
+    const action = actions[actionName]
+    let response
+    if ('function' === typeof action) {
+      response = await action.call(sock, message)
+      response.id = message.id
+    }
+    else {
+      response = {
+        type: 'error',
+        message: `Action ${actionName} not found`
+      }
+    }
+    return response
+  }
+
   try {
     req.cookies = req.headers.cookie ? parseCookies(req.headers.cookie) : {}
     sock.request = req
     sock.stockListener = stockListener
-    await actions.user.call(sock)
-    await actions.stock.call(sock)
-    sock.on('message', async function (data) {
+    sock.sessions = sessions
+    sock.json(await callAction('user'))
+    sock.json(await callAction('stock'))
+    sock.on('message', async function (string) {
+      let response
       try {
-        data = JSON.parse(data)
-        const action = (data.action && actions[data.action]) || actions.invoke
-        await action.call(sock, data)
+        const message = JSON.parse(string)
+        response = await callAction(message.action, message)
       }
       catch (ex) {
         console.error(ex)
+        response = {
+          type: 'error',
+          message: ex.message
+        }
       }
+      sock.json(response)
     })
   }
   catch (ex) {
@@ -65,3 +93,11 @@ wss.on('connection', async function (sock, req) {
 })
 
 app.use(express.static(__dirname + '/../public'))
+
+setInterval(function () {
+  for(const id in sessions) {
+    if (Date.now() - sessions[id].authorized > 3600 * 1000) {
+      delete sessions[id]
+    }
+  }
+}, 60 * 1000)

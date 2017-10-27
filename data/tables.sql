@@ -1,9 +1,8 @@
 CREATE TABLE user (
   id VARCHAR(32) PRIMARY KEY,
   password VARCHAR(192) NOT NULL,
-  forename VARCHAR(48) NOT NULL,
-  surname VARCHAR(48) NOT NULL,
-  token VARCHAR(48)
+  forename VARCHAR(48),
+  surname VARCHAR(48)
 );
 
 CREATE TABLE stock (

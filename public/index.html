@@ -20,47 +20,84 @@
         body {
             font-family: Roboto, sans-serif;
         }
+
+        .invalid input {
+            border-color: red;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .material-icons {
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+
+<template id="auth-view">
+    <form>
+        <h1>{{ signup ? 'Signup' : 'Login'}}</h1>
+        <div v-bind:class="{invalid: errors.id}">
+            <input placeholder="Username" v-model="id"/>
+            <div class="error">{{ errors.id }}</div>
+        </div>
+        <div v-bind:class="{invalid: errors.password}">
+            <input placeholder="Password" v-model="password"/>
+            <div class="error">{{ errors.password }}</div>
+        </div>
+        <label>
+            <input type="checkbox" v-model="signup">
+            register new user
+        </label>
+        <button type="button" v-on:click="submit()">{{ signup ? 'Signup' : 'Login'}}</button>
+    </form>
+</template>
+
 <main>
-    <header v-if="user">
-        <h1>Stocks</h1>
-        <div>
+    <div v-if="user">
+        <header>
+            <h1>Stocks</h1>
+            <div>
             <span class="name">
                 Logged in as
                 <span>{{ user.forename }}</span>
                 <span>{{ user.surname }}</span>
             </span>
-            <i class="settings material-icons">settings</i>
-            <i class="logout material-icons">power_settings_new</i>
-        </div>
-    </header>
-    <article>
-        <div id="prices">
-            <h2>Stock prices</h2>
-            <table>
-                <thead>
-                <tr>
-                    <td>Company</td>
-                    <td>Value</td>
-                    <td>Actions</td>
-                </tr>
-                </thead>
-                <tbody>
-                <tr v-for="(c, code) in companies">
-                    <td>{{ code }}</td>
-                    <td>{{ c.price }}</td>
-                    <td>
-                        <button type="button">Buy</button>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <div id="wallet"></div>
-    </article>
+                <i class="settings material-icons">settings</i>
+                <i class="logout material-icons" v-on:click="logout()">power_settings_new</i>
+            </div>
+        </header>
+        <article>
+            <div id="prices">
+                <h2>Stock prices</h2>
+                <table>
+                    <thead>
+                    <tr>
+                        <td>Company</td>
+                        <td>Value</td>
+                        <td>Actions</td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(c, code) in companies">
+                        <td>{{ code }}</td>
+                        <td>{{ c.price }}</td>
+                        <td>
+                            <button type="button">Buy</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="wallet"></div>
+        </article>
+    </div>
+    <auth v-else/>
+</main>
 <script src="common.js"></script>
+<script src="auth.js"></script>
 <script src="client.js"></script>
 </body>
 </html>

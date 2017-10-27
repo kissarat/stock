@@ -1,11 +1,60 @@
 const db = require('../data')
+const {validateModel} = require('../public/common')
+const {isEmpty, pick} = require('underscore')
 
 module.exports = {
-  async user() {
-    this.json({
+  async auth({data}) {
+    let errors = validateModel(data, 'auth')
+    if (isEmpty(errors)) {
+      const user = await this.getProfile({id: data.id})
+      if (data.signup) {
+        if (user) {
+          errors = {id: 'User already registered'}
+        }
+        else {
+          data = pick(data, 'id', 'password')
+          await db.table('user').insert(data)
+          return {
+            type: 'user',
+            result: await this.login({id: data.id})
+          }
+        }
+      }
+      else if (user) {
+        if (data.password === user.password) {
+          return {
+            type: 'user',
+            result: await this.login({id: data.id})
+          }
+        }
+        else {
+          errors = {password: 'Wrong password'}
+        }
+      }
+      else {
+        errors = {id: 'User not found'}
+      }
+    }
+    console.log(errors)
+    return {
+      type: 'error',
+      errors
+    }
+  },
+
+  logout() {
+    this.logout()
+    return {
       type: 'user',
-      result: await this.getProfile()
-    })
+      result: null
+    }
+  },
+
+  user() {
+    return {
+      type: 'user',
+      result: this.session
+    }
   },
 
   async stock() {
@@ -23,10 +72,10 @@ module.exports = {
         price: item.Price
       }
     }
-    this.json({
+    return {
       type: 'stock',
       result
-    })
+    }
   },
 
   invoke(action) {

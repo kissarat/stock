@@ -13,10 +13,25 @@ const validators = {
     if (!regex.test(this[key])) {
       return 'Is invalid'
     }
+  },
+
+  trim(key) {
+    if ('string' === typeof this[key]) {
+      this[key] = this[key].trim()
+    }
   }
 }
 
 function validateModel(o, rules) {
+  if ('string' === typeof rules) {
+    const ruleSet = validations[rules]
+    if (ruleSet) {
+      rules = ruleSet
+    }
+    else {
+      throw new Error(`Rules for model ${rules} not found`)
+    }
+  }
   const errors = {}
   for (const rule of rules) {
     if ('function' === typeof rule) {
@@ -39,9 +54,10 @@ function validateModel(o, rules) {
 }
 
 const validations = {
-  Login: [
-    [['username', 'password'], 'required'],
-    ['username', 'regex', /^[\w_]+$/],
+  auth: [
+    [['id', 'password'], 'required'],
+    [['id', 'password'], 'trim'],
+    ['id', 'regex', /^[\w_]+$/],
   ]
 }
 
