@@ -1,3 +1,7 @@
+const appState = {
+  online: false
+}
+
 Vue.component('auth', {
   template: document.getElementById('auth-view').innerHTML,
   data() {

@@ -2,16 +2,33 @@ const vue = new Vue({
   el: 'main',
   data: {
     user: false,
+    code: '',
+    amount: 1,
+    app: appState,
+    errors: {},
     login: {
       username: '',
       password: ''
     },
-    companies: {}
+    companies: {},
+    wallet: []
   },
   methods: {
+    buy(code) {
+      if (this.code === code) {
+        client.submit(this, 'buy', ['amount', 'code'])
+      }
+      else {
+        this.code = code
+      }
+    },
+
     logout() {
       client.request('logout')
     }
+  },
+
+  computed: {
   }
 })
 
@@ -23,6 +40,12 @@ function newId(n = 2) {
   return strings.join('')
 }
 
+const cookies = parseCookies(document.cookie)
+
+if (!cookies.token) {
+  document.cookie = cookieString('token', newId())
+}
+
 class Client extends Reconnect {
   constructor(url) {
     super(url)
@@ -31,7 +54,10 @@ class Client extends Reconnect {
 
   connect() {
     this.sock = new WebSocket(this.url)
-    this.on('open', () => this.onConnected())
+    this.on('open', () => {
+      this.onConnected()
+      appState.online = this.isOpen
+    })
   }
 
   request(message) {
@@ -70,6 +96,10 @@ class Client extends Reconnect {
     }
   }
 
+  onClose() {
+    appState.online = this.isOpen
+  }
+
   onMessage(e) {
     const data = JSON.parse(e.data)
     const r = this._requests[data.id]
@@ -89,6 +119,14 @@ class Client extends Reconnect {
 
       case 'user':
         vue.user = data.result
+        if (vue.user) {
+          this.request({action: 'stock'})
+              .then(() => this.send({action: 'wallet'}))
+        }
+        break
+
+      case 'wallet':
+        vue.wallet = data.result
         break
 
       default:

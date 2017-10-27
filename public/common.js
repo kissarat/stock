@@ -58,6 +58,15 @@ const validations = {
     [['id', 'password'], 'required'],
     [['id', 'password'], 'trim'],
     ['id', 'regex', /^[\w_]+$/],
+  ],
+
+  buy: [
+    [['code'], 'required'],
+    function () {
+      if (!(this.amount > 0)) {
+        return {amount: 'Must be greater than 0'}
+      }
+    }
   ]
 }
 
@@ -76,13 +85,25 @@ function cookieString(key, value) {
 class Reconnect {
   constructor(url) {
     this.url = url
+    this.timer = -1
     this.connect()
   }
 
+  get isOpen() {
+    return this.sock && 1 === this.sock.readyState
+  }
+
   onConnected() {
-    this.on('close', () => {
+    clearInterval(this.timer)
+    this.timer = -1
+    this.on('close', e => {
       this.sock = null
-      setTimeout(() => this.connect(), 600)
+      if (this.onClose) {
+        this.onClose(e)
+      }
+      if (this.timer < 0) {
+        this.timer = setInterval(() => this.connect(), 600)
+      }
     })
     this.on('message', e => this.onMessage && this.onMessage(e))
     this.on('error', e => this.onConnectionError && this.onConnectionError(e))

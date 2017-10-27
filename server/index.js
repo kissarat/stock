@@ -3,6 +3,7 @@ const WebSocket = require('ws')
 const {Reconnect, parseCookies} = require('../public/common')
 const actions = require('./actions')
 const db = require('../data')
+const fs = require('fs')
 require('./context')
 
 const port = 3000
@@ -42,7 +43,25 @@ class StockListener extends Reconnect {
   }
 }
 
-const sessions = {}
+let sessions = {}
+const SESSION_FILE = '/tmp/stock-sessions.json'
+try {
+  sessions = JSON.parse(fs.readFileSync(SESSION_FILE))
+  fs.unlinkSync(SESSION_FILE)
+}
+catch (ex) {
+
+}
+
+process.on('SIGINT', function () {
+  try {
+    fs.writeFileSync(SESSION_FILE, JSON.stringify(sessions))
+  }
+  catch (ex) {
+    console.error('Cannot save sessions', ex)
+  }
+  process.exit()
+})
 
 const stockListener = new StockListener('ws://webtask.future-processing.com:8068/ws/stocks?format=json')
 
@@ -70,7 +89,6 @@ wss.on('connection', async function (sock, req) {
     sock.stockListener = stockListener
     sock.sessions = sessions
     sock.json(await callAction('user'))
-    sock.json(await callAction('stock'))
     sock.on('message', async function (string) {
       let response
       try {

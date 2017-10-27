@@ -21,6 +21,10 @@
             font-family: Roboto, sans-serif;
         }
 
+        #prices .invalid:not(.selected) .error {
+            display: none;
+        }
+
         .invalid input {
             border-color: red;
         }
@@ -31,6 +35,10 @@
 
         .material-icons {
             cursor: pointer;
+        }
+
+        #buy-amount {
+            width: 40px;
         }
     </style>
 </head>
@@ -44,7 +52,7 @@
             <div class="error">{{ errors.id }}</div>
         </div>
         <div v-bind:class="{invalid: errors.password}">
-            <input placeholder="Password" v-model="password"/>
+            <input placeholder="Password" type="password" v-model="password"/>
             <div class="error">{{ errors.password }}</div>
         </div>
         <label>
@@ -81,17 +89,47 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="(c, code) in companies">
-                        <td>{{ code }}</td>
+                    <tr v-for="(c, codeKey) in companies">
+                        <td>{{ codeKey }}</td>
                         <td>{{ c.price }}</td>
-                        <td>
-                            <button type="button">Buy</button>
+                        <td v-bind:style="{visibility: app.online ? 'visible' : 'hidden'}"
+                        v-bind:class="{invalid: errors.amount, selected: code == codeKey}">
+                            <input type="number" v-model="amount" id="buy-amount" v-if="code == codeKey"/>
+                            <button type="button"
+                                    v-on:click="buy(codeKey)"
+                                    v-bind:disabled="(codeKey == code ? amount : 1) * c.price * 100 >= user.balance">
+                                Buy
+                            </button>
+                            <div class="error">{{ errors.amount }}</div>
                         </td>
                     </tr>
                     </tbody>
                 </table>
             </div>
-            <div id="wallet"></div>
+            <div id="wallet">
+                <table>
+                    <thead>
+                    <tr>
+                        <td>Company</td>
+                        <td>Unit price</td>
+                        <td>Amount</td>
+                        <td>Value</td>
+                        <td>Actions</td>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="w of wallet">
+                        <td>{{ w.code }}</td>
+                        <td>{{ w.price }}</td>
+                        <td>{{ w.amount }}</td>
+                        <td>{{ w.price * w.amount }}</td>
+                        <td>
+                            <button type="button">Sell</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
         </article>
     </div>
     <auth v-else/>
